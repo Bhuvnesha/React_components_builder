@@ -68,3 +68,63 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+Option 1: Quick Test in CodeSandbox (Easiest)
+
+Go to codesandbox.io
+Click "Create Sandbox" → Choose "React"
+Replace the contents of App.js with the builder code
+It will run automatically!
+
+Option 2: Run Locally with Create React App
+Step 1: Create a new React app
+bashnpx create-react-app react-builder
+cd react-builder
+Step 2: Install Lucide Icons (required dependency)
+bashnpm install lucide-react
+Step 3: Replace App.js
+
+Copy the react-builder.jsx code
+Replace the contents of src/App.js with it
+
+Step 4: Run the app
+bashnpm start
+The builder will open in your browser at http://localhost:3000
+Option 3: Run with Vite (Faster)
+Step 1: Create a Vite project
+bashnpm create vite@latest react-builder -- --template react
+cd react-builder
+Step 2: Install dependencies
+bashnpm install
+npm install lucide-react
+Step 3: Replace App.jsx
+
+Copy the react-builder.jsx code
+Replace the contents of src/App.jsx with it
+
+Step 4: Run the dev server
+bashnpm run dev
+Open the URL shown (usually http://localhost:5173)
+Quick Start Script
+Here's a complete script you can copy/paste in your terminal:
+bash# Using Create React App
+npx create-react-app my-builder
+cd my-builder
+npm install lucide-react
+# Now copy react-builder.jsx contents to src/App.js
+npm start
+Or with Vite (faster):
+bash# Using Vite
+npm create vite@latest my-builder -- --template react
+cd my-builder
+npm install
+npm install lucide-react
+# Now copy react-builder.jsx contents to src/App.jsx
+npm run dev
+What You Need:
+
+✅ Node.js (v14 or higher)
+✅ npm or yarn
+✅ The react-builder.jsx file I created
+
+That's it! Once running, you can start building applications visually and exporting the code. Let me know if you hit any issues!
