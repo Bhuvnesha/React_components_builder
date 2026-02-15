@@ -1,5 +1,83 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, createContext, useContext, useReducer } from 'react';
 import { Plus, Eye, Code, Download, Trash2, Move, Settings, Play, Layers, Type, Square, Grid, Image, List, FileText, Info, BookOpen } from 'lucide-react';
+
+// Global State Management Context
+const AppStateContext = createContext();
+
+const initialAppState = {
+  formData: {},
+  apiResponses: {},
+  validationErrors: {},
+  modalStates: {},
+  loadingStates: {},
+  counters: {},
+  selectedItems: {},
+  toggleStates: {}
+};
+
+const appStateReducer = (state, action) => {
+  switch (action.type) {
+    case 'UPDATE_FORM_DATA':
+      return {
+        ...state,
+        formData: { ...state.formData, [action.field]: action.value }
+      };
+    case 'SET_VALIDATION_ERROR':
+      return {
+        ...state,
+        validationErrors: { ...state.validationErrors, [action.field]: action.error }
+      };
+    case 'CLEAR_VALIDATION_ERROR':
+      const { [action.field]: removed, ...rest } = state.validationErrors;
+      return { ...state, validationErrors: rest };
+    case 'TOGGLE_MODAL':
+      return {
+        ...state,
+        modalStates: { ...state.modalStates, [action.id]: !state.modalStates[action.id] }
+      };
+    case 'SET_LOADING':
+      return {
+        ...state,
+        loadingStates: { ...state.loadingStates, [action.id]: action.loading }
+      };
+    case 'INCREMENT_COUNTER':
+      return {
+        ...state,
+        counters: { ...state.counters, [action.id]: (state.counters[action.id] || 0) + 1 }
+      };
+    case 'TOGGLE_ITEM':
+      return {
+        ...state,
+        toggleStates: { ...state.toggleStates, [action.id]: !state.toggleStates[action.id] }
+      };
+    case 'SET_API_RESPONSE':
+      return {
+        ...state,
+        apiResponses: { ...state.apiResponses, [action.id]: action.data }
+      };
+    case 'RESET_STATE':
+      return initialAppState;
+    default:
+      return state;
+  }
+};
+
+const AppStateProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(appStateReducer, initialAppState);
+  return (
+    <AppStateContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppStateContext.Provider>
+  );
+};
+
+const useAppState = () => {
+  const context = useContext(AppStateContext);
+  if (!context) {
+    return { state: initialAppState, dispatch: () => {} };
+  }
+  return context;
+};
 
 const FRAMEWORKS = {
   vanilla: { name: 'Vanilla CSS', icon: '🎨' },
@@ -716,6 +794,586 @@ const TEMPLATES = {
             type: 'button',
             props: { text: 'Send Message', backgroundColor: '#3b82f6', color: '#ffffff', padding: '12px 24px', borderRadius: '6px', border: 'none', fontSize: '16px', fontWeight: '600', cursor: 'pointer', width: '100%' },
             children: []
+          }
+        ]
+      }
+    ]
+  },
+  profilePage: {
+    name: 'Profile Page',
+    category: 'Pages',
+    description: 'User profile page with avatar and information',
+    icon: '👤',
+    components: [
+      {
+        id: 'profile-wrapper',
+        type: 'container',
+        props: {
+          padding: '40px',
+          backgroundColor: '#f9fafb',
+          minHeight: '100vh',
+          display: 'flex',
+          justifyContent: 'center'
+        },
+        children: [
+          {
+            id: 'profile-card',
+            type: 'card',
+            props: {
+              padding: '32px',
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+              maxWidth: '800px',
+              width: '100%'
+            },
+            children: [
+              {
+                id: 'profile-header',
+                type: 'flexRow',
+                props: { display: 'flex', gap: '24px', alignItems: 'center', padding: '0 0 24px 0', borderBottom: '1px solid #e5e7eb', backgroundColor: 'transparent' },
+                children: [
+                  {
+                    id: 'profile-avatar',
+                    type: 'avatar',
+                    props: { src: 'https://via.placeholder.com/100', alt: 'Profile', width: '100px', height: '100px', borderRadius: '50%', border: '4px solid #3b82f6' },
+                    children: []
+                  },
+                  {
+                    id: 'profile-info',
+                    type: 'container',
+                    props: { display: 'flex', flexDirection: 'column', gap: '8px' },
+                    children: [
+                      {
+                        id: 'profile-name',
+                        type: 'heading',
+                        props: { text: 'John Doe', fontSize: '28px', fontWeight: '700', color: '#111827', margin: '0' },
+                        children: []
+                      },
+                      {
+                        id: 'profile-email',
+                        type: 'text',
+                        props: { text: 'john.doe@example.com', fontSize: '16px', color: '#6b7280', margin: '0' },
+                        children: []
+                      },
+                      {
+                        id: 'profile-badge',
+                        type: 'badge',
+                        props: { text: 'Premium Member', backgroundColor: '#3b82f6', color: '#ffffff', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', display: 'inline-block' },
+                        children: []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'profile-details',
+                type: 'container',
+                props: { padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '16px' },
+                children: [
+                  {
+                    id: 'detail-1',
+                    type: 'flexRow',
+                    props: { display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f3f4f6', backgroundColor: 'transparent' },
+                    children: [
+                      {
+                        id: 'detail-1-label',
+                        type: 'text',
+                        props: { text: 'Location:', fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0' },
+                        children: []
+                      },
+                      {
+                        id: 'detail-1-value',
+                        type: 'text',
+                        props: { text: 'San Francisco, CA', fontSize: '14px', color: '#6b7280', margin: '0' },
+                        children: []
+                      }
+                    ]
+                  },
+                  {
+                    id: 'detail-2',
+                    type: 'flexRow',
+                    props: { display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f3f4f6', backgroundColor: 'transparent' },
+                    children: [
+                      {
+                        id: 'detail-2-label',
+                        type: 'text',
+                        props: { text: 'Member Since:', fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0' },
+                        children: []
+                      },
+                      {
+                        id: 'detail-2-value',
+                        type: 'text',
+                        props: { text: 'January 2023', fontSize: '14px', color: '#6b7280', margin: '0' },
+                        children: []
+                      }
+                    ]
+                  },
+                  {
+                    id: 'detail-3',
+                    type: 'flexRow',
+                    props: { display: 'flex', justifyContent: 'space-between', padding: '12px 0', backgroundColor: 'transparent' },
+                    children: [
+                      {
+                        id: 'detail-3-label',
+                        type: 'text',
+                        props: { text: 'Account Type:', fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0' },
+                        children: []
+                      },
+                      {
+                        id: 'detail-3-value',
+                        type: 'text',
+                        props: { text: 'Business', fontSize: '14px', color: '#6b7280', margin: '0' },
+                        children: []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'profile-actions',
+                type: 'flexRow',
+                props: { display: 'flex', gap: '12px', padding: '24px 0 0 0', backgroundColor: 'transparent' },
+                children: [
+                  {
+                    id: 'edit-button',
+                    type: 'button',
+                    props: { text: 'Edit Profile', backgroundColor: '#3b82f6', color: '#ffffff', padding: '10px 24px', borderRadius: '6px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+                    children: []
+                  },
+                  {
+                    id: 'logout-button',
+                    type: 'buttonOutline',
+                    props: { text: 'Logout', backgroundColor: 'transparent', color: '#ef4444', padding: '10px 24px', borderRadius: '6px', border: '2px solid #ef4444', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  settingsPage: {
+    name: 'Settings Page',
+    category: 'Pages',
+    description: 'Settings form with multiple sections',
+    icon: '⚙️',
+    components: [
+      {
+        id: 'settings-container',
+        type: 'container',
+        props: {
+          padding: '40px',
+          backgroundColor: '#f9fafb',
+          minHeight: '100vh'
+        },
+        children: [
+          {
+            id: 'settings-title',
+            type: 'heading',
+            props: { text: 'Settings', fontSize: '32px', fontWeight: '700', color: '#111827', margin: '0 0 32px 0' },
+            children: []
+          },
+          {
+            id: 'general-section',
+            type: 'card',
+            props: { padding: '24px', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '24px' },
+            children: [
+              {
+                id: 'general-heading',
+                type: 'subheading',
+                props: { text: 'General Settings', fontSize: '20px', fontWeight: '600', color: '#111827', margin: '0 0 20px 0' },
+                children: []
+              },
+              {
+                id: 'username-label',
+                type: 'label',
+                props: { text: 'Username', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px', display: 'block' },
+                children: []
+              },
+              {
+                id: 'username-input',
+                type: 'input',
+                props: { placeholder: 'Enter username', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '16px', width: '100%', marginBottom: '16px' },
+                children: []
+              },
+              {
+                id: 'email-label',
+                type: 'label',
+                props: { text: 'Email Address', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px', display: 'block' },
+                children: []
+              },
+              {
+                id: 'email-input',
+                type: 'input',
+                props: { placeholder: 'your.email@example.com', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '16px', width: '100%' },
+                children: []
+              }
+            ]
+          },
+          {
+            id: 'notifications-section',
+            type: 'card',
+            props: { padding: '24px', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '24px' },
+            children: [
+              {
+                id: 'notif-heading',
+                type: 'subheading',
+                props: { text: 'Notifications', fontSize: '20px', fontWeight: '600', color: '#111827', margin: '0 0 20px 0' },
+                children: []
+              },
+              {
+                id: 'email-notif',
+                type: 'checkbox',
+                props: { label: 'Email notifications', checked: true },
+                children: []
+              },
+              {
+                id: 'push-notif',
+                type: 'checkbox',
+                props: { label: 'Push notifications', checked: false },
+                children: []
+              },
+              {
+                id: 'sms-notif',
+                type: 'checkbox',
+                props: { label: 'SMS notifications', checked: false },
+                children: []
+              }
+            ]
+          },
+          {
+            id: 'save-button',
+            type: 'button',
+            props: { text: 'Save Changes', backgroundColor: '#10b981', color: '#ffffff', padding: '12px 32px', borderRadius: '6px', border: 'none', fontSize: '16px', fontWeight: '600', cursor: 'pointer' },
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  productCard: {
+    name: 'Product Card',
+    category: 'E-commerce',
+    description: 'E-commerce product card with image and details',
+    icon: '🛍️',
+    components: [
+      {
+        id: 'product-grid',
+        type: 'grid',
+        props: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', padding: '40px' },
+        children: [
+          {
+            id: 'product-1',
+            type: 'card',
+            props: { padding: '0', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e5e7eb' },
+            children: [
+              {
+                id: 'product-image-1',
+                type: 'image',
+                props: { src: 'https://via.placeholder.com/300x200', alt: 'Product 1', width: '100%', height: '200px', objectFit: 'cover' },
+                children: []
+              },
+              {
+                id: 'product-body-1',
+                type: 'container',
+                props: { padding: '16px' },
+                children: [
+                  {
+                    id: 'product-name-1',
+                    type: 'subheading',
+                    props: { text: 'Premium Headphones', fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'product-desc-1',
+                    type: 'text',
+                    props: { text: 'High-quality wireless headphones with noise cancellation', fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'product-price-1',
+                    type: 'heading',
+                    props: { text: '$299', fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'add-to-cart-1',
+                    type: 'button',
+                    props: { text: 'Add to Cart', backgroundColor: '#3b82f6', color: '#ffffff', padding: '10px 20px', borderRadius: '6px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'product-2',
+            type: 'card',
+            props: { padding: '0', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e5e7eb' },
+            children: [
+              {
+                id: 'product-image-2',
+                type: 'image',
+                props: { src: 'https://via.placeholder.com/300x200', alt: 'Product 2', width: '100%', height: '200px', objectFit: 'cover' },
+                children: []
+              },
+              {
+                id: 'product-body-2',
+                type: 'container',
+                props: { padding: '16px' },
+                children: [
+                  {
+                    id: 'product-name-2',
+                    type: 'subheading',
+                    props: { text: 'Smart Watch', fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'product-desc-2',
+                    type: 'text',
+                    props: { text: 'Fitness tracking and notifications on your wrist', fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'product-price-2',
+                    type: 'heading',
+                    props: { text: '$399', fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'add-to-cart-2',
+                    type: 'button',
+                    props: { text: 'Add to Cart', backgroundColor: '#3b82f6', color: '#ffffff', padding: '10px 20px', borderRadius: '6px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'product-3',
+            type: 'card',
+            props: { padding: '0', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e5e7eb' },
+            children: [
+              {
+                id: 'product-image-3',
+                type: 'image',
+                props: { src: 'https://via.placeholder.com/300x200', alt: 'Product 3', width: '100%', height: '200px', objectFit: 'cover' },
+                children: []
+              },
+              {
+                id: 'product-body-3',
+                type: 'container',
+                props: { padding: '16px' },
+                children: [
+                  {
+                    id: 'product-name-3',
+                    type: 'subheading',
+                    props: { text: 'Laptop Stand', fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'product-desc-3',
+                    type: 'text',
+                    props: { text: 'Ergonomic aluminum stand for your laptop', fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'product-price-3',
+                    type: 'heading',
+                    props: { text: '$49', fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' },
+                    children: []
+                  },
+                  {
+                    id: 'add-to-cart-3',
+                    type: 'button',
+                    props: { text: 'Add to Cart', backgroundColor: '#3b82f6', color: '#ffffff', padding: '10px 20px', borderRadius: '6px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  landingHero: {
+    name: 'Landing Page Hero',
+    category: 'Marketing',
+    description: 'Hero section with headline and CTA',
+    icon: '🚀',
+    components: [
+      {
+        id: 'hero-section',
+        type: 'container',
+        props: {
+          padding: '80px 40px',
+          backgroundColor: '#f9fafb',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '32px'
+        },
+        children: [
+          {
+            id: 'hero-heading',
+            type: 'heading',
+            props: { text: 'Build Amazing Products Faster', fontSize: '48px', fontWeight: '800', color: '#111827', margin: '0', lineHeight: '1.2' },
+            children: []
+          },
+          {
+            id: 'hero-subheading',
+            type: 'text',
+            props: { text: 'Create beautiful, responsive web applications with our powerful visual builder. No coding required.', fontSize: '20px', color: '#6b7280', margin: '0', maxWidth: '700px' },
+            children: []
+          },
+          {
+            id: 'hero-cta-group',
+            type: 'flexRow',
+            props: { display: 'flex', gap: '16px', justifyContent: 'center', padding: '0', backgroundColor: 'transparent' },
+            children: [
+              {
+                id: 'cta-primary',
+                type: 'button',
+                props: { text: 'Get Started Free', backgroundColor: '#3b82f6', color: '#ffffff', padding: '16px 32px', borderRadius: '8px', border: 'none', fontSize: '18px', fontWeight: '600', cursor: 'pointer' },
+                children: []
+              },
+              {
+                id: 'cta-secondary',
+                type: 'buttonOutline',
+                props: { text: 'Watch Demo', backgroundColor: 'transparent', color: '#3b82f6', padding: '16px 32px', borderRadius: '8px', border: '2px solid #3b82f6', fontSize: '18px', fontWeight: '600', cursor: 'pointer' },
+                children: []
+              }
+            ]
+          },
+          {
+            id: 'hero-image',
+            type: 'image',
+            props: { src: 'https://via.placeholder.com/800x400', alt: 'Hero Image', width: '800px', height: '400px', borderRadius: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', marginTop: '32px' },
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  dataTable: {
+    name: 'Data Table',
+    category: 'Data Display',
+    description: 'Table with actions and pagination',
+    icon: '📋',
+    components: [
+      {
+        id: 'table-container',
+        type: 'container',
+        props: { padding: '40px', backgroundColor: '#ffffff' },
+        children: [
+          {
+            id: 'table-header',
+            type: 'flexRow',
+            props: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '0', backgroundColor: 'transparent' },
+            children: [
+              {
+                id: 'table-title',
+                type: 'heading',
+                props: { text: 'Users', fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0' },
+                children: []
+              },
+              {
+                id: 'add-user-btn',
+                type: 'button',
+                props: { text: '+ Add User', backgroundColor: '#3b82f6', color: '#ffffff', padding: '10px 20px', borderRadius: '6px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+                children: []
+              }
+            ]
+          },
+          {
+            id: 'users-table',
+            type: 'table',
+            props: {
+              headers: ['Name', 'Email', 'Role', 'Status', 'Actions'],
+              rows: [
+                ['John Doe', 'john@example.com', 'Admin', 'Active', 'Edit • Delete'],
+                ['Jane Smith', 'jane@example.com', 'User', 'Active', 'Edit • Delete'],
+                ['Bob Johnson', 'bob@example.com', 'User', 'Inactive', 'Edit • Delete']
+              ],
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              width: '100%'
+            },
+            children: []
+          },
+          {
+            id: 'table-pagination',
+            type: 'pagination',
+            props: { totalPages: 5, currentPage: 1, display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '24px' },
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  errorPage: {
+    name: '404 Error Page',
+    category: 'Pages',
+    description: 'Error page with message and navigation',
+    icon: '❌',
+    components: [
+      {
+        id: 'error-container',
+        type: 'container',
+        props: {
+          padding: '80px 40px',
+          backgroundColor: '#f9fafb',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          gap: '24px'
+        },
+        children: [
+          {
+            id: 'error-code',
+            type: 'heading',
+            props: { text: '404', fontSize: '120px', fontWeight: '800', color: '#3b82f6', margin: '0', lineHeight: '1' },
+            children: []
+          },
+          {
+            id: 'error-title',
+            type: 'heading',
+            props: { text: 'Page Not Found', fontSize: '32px', fontWeight: '700', color: '#111827', margin: '0' },
+            children: []
+          },
+          {
+            id: 'error-message',
+            type: 'text',
+            props: { text: "Sorry, we couldn't find the page you're looking for. It might have been moved or deleted.", fontSize: '18px', color: '#6b7280', margin: '0', maxWidth: '600px' },
+            children: []
+          },
+          {
+            id: 'error-actions',
+            type: 'flexRow',
+            props: { display: 'flex', gap: '16px', marginTop: '24px', padding: '0', backgroundColor: 'transparent' },
+            children: [
+              {
+                id: 'home-button',
+                type: 'button',
+                props: { text: 'Go Home', backgroundColor: '#3b82f6', color: '#ffffff', padding: '12px 32px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '600', cursor: 'pointer' },
+                children: []
+              },
+              {
+                id: 'contact-button',
+                type: 'buttonOutline',
+                props: { text: 'Contact Support', backgroundColor: 'transparent', color: '#3b82f6', padding: '12px 32px', borderRadius: '8px', border: '2px solid #3b82f6', fontSize: '16px', fontWeight: '600', cursor: 'pointer' },
+                children: []
+              }
+            ]
           }
         ]
       }
@@ -1595,9 +2253,466 @@ const COMPONENT_TEMPLATES = {
   }
 };
 
+// Interactive wrapper components for preview mode
+const InteractiveDropdown = ({ component, componentStyle }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div style={{ ...componentStyle, position: 'relative' }}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ 
+          padding: '8px 16px', 
+          border: '1px solid #d1d5db', 
+          borderRadius: '6px', 
+          backgroundColor: '#ffffff', 
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
+        {component.props.buttonText} 
+        <span style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+      </button>
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          marginTop: '4px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #d1d5db',
+          borderRadius: '6px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          minWidth: '150px',
+          zIndex: 10
+        }}>
+          {component.props.items?.map((item, idx) => (
+            <div
+              key={idx}
+              onClick={() => {
+                console.log('Selected:', item);
+                setIsOpen(false);
+              }}
+              style={{
+                padding: '8px 12px',
+                cursor: 'pointer',
+                borderBottom: idx < component.props.items.length - 1 ? '1px solid #f3f4f6' : 'none'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InteractivePagination = ({ component, componentStyle }) => {
+  const [currentPage, setCurrentPage] = useState(component.props.currentPage || 1);
+  
+  return (
+    <div style={componentStyle}>
+      {Array.from({ length: component.props.totalPages }, (_, i) => (
+        <button 
+          key={i}
+          onClick={() => setCurrentPage(i + 1)}
+          style={{ 
+            padding: '6px 12px', 
+            border: '1px solid #d1d5db', 
+            backgroundColor: i + 1 === currentPage ? '#3b82f6' : '#ffffff',
+            color: i + 1 === currentPage ? '#ffffff' : '#374151',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          {i + 1}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const InteractiveRating = ({ component, componentStyle }) => {
+  const [rating, setRating] = useState(component.props.value || 0);
+  const [hover, setHover] = useState(0);
+  
+  return (
+    <div style={componentStyle}>
+      {Array.from({ length: component.props.stars }, (_, i) => (
+        <span 
+          key={i} 
+          onClick={() => setRating(i + 1)}
+          onMouseEnter={() => setHover(i + 1)}
+          onMouseLeave={() => setHover(0)}
+          style={{ 
+            fontSize: component.props.size, 
+            color: (hover || rating) > i ? component.props.color : '#d1d5db',
+            cursor: 'pointer',
+            transition: 'color 0.2s'
+          }}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+};
+
+const InteractiveButtonGroup = ({ component, componentStyle }) => {
+  const [selected, setSelected] = useState(0);
+  
+  return (
+    <div style={componentStyle}>
+      {component.props.buttons?.map((btn, idx) => (
+        <button 
+          key={idx}
+          onClick={() => setSelected(idx)}
+          style={{ 
+            padding: '8px 16px', 
+            border: '1px solid #d1d5db',
+            borderRight: idx < component.props.buttons.length - 1 ? 'none' : '1px solid #d1d5db',
+            backgroundColor: selected === idx ? '#3b82f6' : '#ffffff',
+            color: selected === idx ? '#ffffff' : '#374151',
+            cursor: 'pointer',
+            borderRadius: idx === 0 ? '6px 0 0 6px' : idx === component.props.buttons.length - 1 ? '0 6px 6px 0' : '0',
+            transition: 'all 0.2s'
+          }}
+        >
+          {btn}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const InteractiveButton = ({ component, componentStyle, Tag }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const { state: appState, dispatch } = useAppState();
+  const isLoading = appState.loadingStates[component.id];
+  const eventHandler = component.props.eventHandler || 'default';
+  const successMessage = component.props.successMessage || 'Action completed successfully!';
+  
+  const handleClick = async () => {
+    console.log('Button clicked:', component.props.text, '| Handler:', eventHandler);
+    
+    // Submit form action
+    if (eventHandler === 'submit' || component.props.text?.toLowerCase().includes('submit') || 
+        component.props.text?.toLowerCase().includes('sign in') ||
+        component.props.text?.toLowerCase().includes('send')) {
+      dispatch({ type: 'SET_LOADING', id: component.id, loading: true });
+      
+      // Simulate API call
+      setTimeout(() => {
+        dispatch({ type: 'SET_LOADING', id: component.id, loading: false });
+        console.log('Form submitted with data:', appState.formData);
+        alert(successMessage + '\n\nForm data logged to console.');
+      }, 1500);
+    } 
+    // Reset form action
+    else if (eventHandler === 'reset') {
+      dispatch({ type: 'RESET_STATE' });
+      alert('Form has been reset!');
+    }
+    // API call action
+    else if (eventHandler === 'api') {
+      dispatch({ type: 'SET_LOADING', id: component.id, loading: true });
+      setTimeout(() => {
+        dispatch({ type: 'SET_LOADING', id: component.id, loading: false });
+        alert(successMessage);
+      }, 1000);
+    }
+    // Default: increment counter
+    else {
+      dispatch({ type: 'INCREMENT_COUNTER', id: component.id });
+      console.log('Button click count:', (appState.counters[component.id] || 0) + 1);
+    }
+  };
+  
+  return (
+    <Tag 
+      style={{
+        ...componentStyle,
+        opacity: isLoading ? 0.6 : (isHovered ? 0.9 : 1),
+        transform: isHovered && !isLoading ? 'translateY(-1px)' : 'translateY(0)',
+        transition: 'all 0.2s',
+        cursor: isLoading ? 'not-allowed' : 'pointer',
+        position: 'relative'
+      }}
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+          <div style={{
+            width: '16px',
+            height: '16px',
+            border: '2px solid currentColor',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          Loading...
+        </div>
+      ) : (
+        <>
+          {component.props.text}
+          {eventHandler === 'default' && appState.counters[component.id] > 0 && (
+            <span style={{
+              marginLeft: '8px',
+              backgroundColor: 'rgba(255,255,255,0.3)',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontSize: '11px'
+            }}>
+              {appState.counters[component.id]}
+            </span>
+          )}
+        </>
+      )}
+    </Tag>
+  );
+};
+
+const InteractiveTooltip = ({ component, componentStyle }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  return (
+    <div 
+      style={{ position: 'relative', display: 'inline-block', ...componentStyle }}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      <span>{component.props.text}</span>
+      {showTooltip && (
+        <div style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginBottom: '8px',
+          padding: '6px 12px',
+          backgroundColor: '#1f2937',
+          color: '#ffffff',
+          fontSize: '12px',
+          borderRadius: '4px',
+          whiteSpace: 'nowrap',
+          zIndex: 10
+        }}>
+          {component.props.tooltipText}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// State Viewer Component for Preview Mode
+const StateViewer = () => {
+  const { state, dispatch } = useAppState();
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const hasData = Object.keys(state.formData).length > 0 || 
+                  Object.keys(state.counters).length > 0 ||
+                  Object.keys(state.toggleStates).length > 0;
+  
+  if (!hasData) return null;
+  
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '16px',
+      right: '16px',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e5e7eb',
+      borderRadius: '8px',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      maxWidth: '400px',
+      zIndex: 1000
+    }}>
+      <div 
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          padding: '12px 16px',
+          borderBottom: isExpanded ? '1px solid #e5e7eb' : 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: '#f9fafb',
+          borderRadius: isExpanded ? '8px 8px 0 0' : '8px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Settings size={16} style={{ color: '#3b82f6' }} />
+          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>
+            Application State
+          </span>
+        </div>
+        <span style={{ fontSize: '18px', color: '#6b7280', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>
+          ▼
+        </span>
+      </div>
+      
+      {isExpanded && (
+        <div style={{ padding: '12px', maxHeight: '300px', overflow: 'auto' }}>
+          {Object.keys(state.formData).length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase' }}>
+                Form Data
+              </div>
+              {Object.entries(state.formData).map(([key, value]) => (
+                <div key={key} style={{ fontSize: '13px', marginBottom: '4px', display: 'flex', gap: '8px' }}>
+                  <span style={{ color: '#9ca3af', minWidth: '100px' }}>{key.split('-')[0]}:</span>
+                  <span style={{ color: '#111827', wordBreak: 'break-word' }}>{value || '(empty)'}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {Object.keys(state.counters).length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase' }}>
+                Click Counters
+              </div>
+              {Object.entries(state.counters).map(([key, value]) => (
+                <div key={key} style={{ fontSize: '13px', marginBottom: '4px', display: 'flex', gap: '8px' }}>
+                  <span style={{ color: '#9ca3af' }}>{key.split('-')[0]}:</span>
+                  <span style={{ color: '#111827', fontWeight: '600' }}>{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {Object.keys(state.validationErrors).length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#ef4444', marginBottom: '8px', textTransform: 'uppercase' }}>
+                Validation Errors
+              </div>
+              {Object.entries(state.validationErrors).map(([key, error]) => (
+                <div key={key} style={{ fontSize: '13px', marginBottom: '4px', color: '#ef4444' }}>
+                  {error}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <button
+            onClick={() => dispatch({ type: 'RESET_STATE' })}
+            style={{
+              width: '100%',
+              padding: '8px',
+              backgroundColor: '#fef2f2',
+              color: '#ef4444',
+              border: '1px solid #fecaca',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              marginTop: '8px'
+            }}
+          >
+            Reset All State
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Preview-only component renderer (no editing, selection, or outlines)
 const PreviewRenderer = ({ component }) => {
+  const [localState, setLocalState] = useState({});
+  const { state: appState, dispatch } = useAppState();
   const template = COMPONENT_TEMPLATES[component.type];
+  
+  // Initialize state for interactive components
+  React.useEffect(() => {
+    const initialState = {};
+    if (component.type === 'checkbox' || component.type === 'switch') {
+      initialState.checked = component.props.checked || false;
+    }
+    if (component.type === 'radio') {
+      initialState.checked = false;
+    }
+    if (component.type === 'input' || component.type === 'textarea') {
+      initialState.value = appState.formData[component.id] || '';
+    }
+    if (component.type === 'slider') {
+      initialState.value = component.props.value || 50;
+    }
+    if (component.type === 'select') {
+      initialState.value = component.props.options?.[0] || '';
+    }
+    if (component.type === 'accordion') {
+      initialState.openIndex = null;
+    }
+    if (component.type === 'tabs') {
+      initialState.activeTab = 0;
+    }
+    setLocalState(initialState);
+  }, [component.type, component.props.checked, component.props.value, component.props.options, component.id, appState.formData]);
+  
+  // Form validation helper
+  const validateInput = (value, validationType, placeholder) => {
+    if (!value) {
+      // Only check required if explicitly set
+      return null;
+    }
+    
+    // Use explicit validation type if set
+    if (validationType === 'email' || (!validationType && (placeholder?.toLowerCase().includes('email') || placeholder?.toLowerCase().includes('e-mail')))) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(value) ? null : 'Please enter a valid email address';
+    }
+    
+    if (validationType === 'phone' || (!validationType && placeholder?.toLowerCase().includes('phone'))) {
+      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+      return phoneRegex.test(value) ? null : 'Please enter a valid phone number';
+    }
+    
+    if (validationType === 'number') {
+      const numberRegex = /^[0-9]+$/;
+      return numberRegex.test(value) ? null : 'Please enter numbers only';
+    }
+    
+    if (validationType === 'url') {
+      try {
+        new URL(value);
+        return null;
+      } catch {
+        return 'Please enter a valid URL (e.g., https://example.com)';
+      }
+    }
+    
+    return null;
+  };
+  
+  // Handle input change with validation
+  const handleInputChange = (value, fieldId, validationType, placeholder, required) => {
+    setLocalState({ ...localState, value });
+    dispatch({ type: 'UPDATE_FORM_DATA', field: fieldId, value });
+    
+    // Check required first
+    if (required && !value) {
+      dispatch({ type: 'SET_VALIDATION_ERROR', field: fieldId, error: 'This field is required' });
+      return;
+    }
+    
+    // Validate the input
+    const error = validateInput(value, validationType, placeholder);
+    if (error) {
+      dispatch({ type: 'SET_VALIDATION_ERROR', field: fieldId, error });
+    } else {
+      dispatch({ type: 'CLEAR_VALIDATION_ERROR', field: fieldId });
+    }
+  };
   
   const renderChildren = () => {
     if (component.children && component.children.length > 0) {
@@ -1632,32 +2747,47 @@ const PreviewRenderer = ({ component }) => {
       return <Tag {...component.props} style={componentStyle} />;
     }
     
-    // Select component
+    // Select component with state
     if (component.type === 'select') {
       return (
-        <Tag style={componentStyle}>
+        <Tag 
+          style={componentStyle}
+          value={localState.value || ''}
+          onChange={(e) => setLocalState({ ...localState, value: e.target.value })}
+        >
           {component.props.options?.map((option, idx) => (
-            <option key={idx}>{option}</option>
+            <option key={idx} value={option}>{option}</option>
           ))}
         </Tag>
       );
     }
     
-    // Checkbox component
+    // Checkbox component with state
     if (component.type === 'checkbox') {
       return (
-        <label style={{ ...componentStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input type="checkbox" checked={component.props.checked} onChange={() => {}} />
+        <label style={{ ...componentStyle, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <input 
+            type="checkbox" 
+            checked={localState.checked || false}
+            onChange={(e) => setLocalState({ ...localState, checked: e.target.checked })}
+            style={{ cursor: 'pointer' }}
+          />
           <span>{component.props.label}</span>
         </label>
       );
     }
     
-    // Radio component
+    // Radio component with state
     if (component.type === 'radio') {
       return (
-        <label style={{ ...componentStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input type="radio" name={component.props.name} />
+        <label style={{ ...componentStyle, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <input 
+            type="radio" 
+            name={component.props.name}
+            checked={localState.checked || false}
+            onChange={(e) => setLocalState({ ...localState, checked: e.target.checked })}
+            style={{ cursor: 'pointer' }}
+          />
           <span>{component.props.label}</span>
         </label>
       );
@@ -1696,20 +2826,25 @@ const PreviewRenderer = ({ component }) => {
       );
     }
     
-    // Tabs component
+    // Tabs component with state
     if (component.type === 'tabs') {
       return (
         <div style={componentStyle}>
           {component.props.tabs?.map((tab, idx) => (
-            <button key={idx} style={{ 
-              padding: '8px 16px', 
-              border: 'none', 
-              backgroundColor: idx === 0 ? '#3b82f6' : 'transparent',
-              color: idx === 0 ? '#ffffff' : '#6b7280',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}>
+            <button 
+              key={idx} 
+              onClick={() => setLocalState({ ...localState, activeTab: idx })}
+              style={{ 
+                padding: '8px 16px', 
+                border: 'none', 
+                backgroundColor: (localState.activeTab ?? 0) === idx ? '#3b82f6' : 'transparent',
+                color: (localState.activeTab ?? 0) === idx ? '#ffffff' : '#6b7280',
+                borderRadius: '6px 6px 0 0',
+                cursor: 'pointer',
+                fontWeight: '600',
+                transition: 'all 0.2s'
+              }}
+            >
               {tab}
             </button>
           ))}
@@ -1733,14 +2868,113 @@ const PreviewRenderer = ({ component }) => {
       );
     }
     
-    // Input/Textarea
-    if (component.type === 'input' || component.type === 'textarea') {
-      return <Tag placeholder={component.props.placeholder} style={componentStyle} />;
+    // Input with state and validation
+    if (component.type === 'input') {
+      const hasError = appState.validationErrors[component.id];
+      const placeholder = component.props.placeholder || '';
+      const validationType = component.props.validationType || 'none';
+      const required = component.props.required || false;
+      const isValidated = validationType !== 'none' || placeholder.toLowerCase().includes('email') || placeholder.toLowerCase().includes('phone');
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+          <Tag 
+            placeholder={placeholder} 
+            style={{
+              ...componentStyle,
+              borderColor: hasError ? '#ef4444' : (isValidated) ? '#3b82f6' : componentStyle.borderColor,
+              borderWidth: '2px',
+              transition: 'border-color 0.2s'
+            }}
+            value={appState.formData[component.id] || localState.value || ''}
+            onChange={(e) => handleInputChange(e.target.value, component.id, validationType, placeholder, required)}
+            required={required}
+          />
+          {required && (
+            <div style={{ fontSize: '11px', color: '#6b7280' }}>
+              * Required field
+            </div>
+          )}
+          {hasError && (
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#ef4444', 
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <span>⚠️</span>
+              <span>{hasError}</span>
+            </div>
+          )}
+          {!hasError && isValidated && (appState.formData[component.id]?.length > 0) && (
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#10b981', 
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <span>✓</span>
+              <span>Valid {validationType || 'input'}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // Textarea with state and validation
+    if (component.type === 'textarea') {
+      const hasError = appState.validationErrors[component.id];
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+          <Tag 
+            placeholder={component.props.placeholder} 
+            style={{
+              ...componentStyle,
+              borderColor: hasError ? '#ef4444' : componentStyle.borderColor,
+              borderWidth: '2px'
+            }}
+            value={appState.formData[component.id] || localState.value || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              setLocalState({ ...localState, value });
+              dispatch({ type: 'UPDATE_FORM_DATA', field: component.id, value });
+              
+              // Validate
+              const error = validateInput(value, null, component.props.placeholder);
+              if (error) {
+                dispatch({ type: 'SET_VALIDATION_ERROR', field: component.id, error });
+              } else {
+                dispatch({ type: 'CLEAR_VALIDATION_ERROR', field: component.id });
+              }
+            }}
+          />
+          {hasError && (
+            <span style={{ fontSize: '12px', color: '#ef4444', fontWeight: '500' }}>
+              ⚠️ {hasError}
+            </span>
+          )}
+        </div>
+      );
     }
     
     // Link
     if (component.type === 'link') {
-      return <Tag href={component.props.href} style={componentStyle}>{component.props.text}</Tag>;
+      return (
+        <Tag 
+          href={component.props.href} 
+          style={componentStyle}
+          onClick={(e) => {
+            e.preventDefault();
+            console.log('Link clicked:', component.props.href);
+          }}
+        >
+          {component.props.text}
+        </Tag>
+      );
     }
     
     // Divider
@@ -1748,27 +2982,37 @@ const PreviewRenderer = ({ component }) => {
       return <Tag style={componentStyle} />;
     }
     
-    // Switch
+    // Switch with state
     if (component.type === 'switch') {
       return (
-        <label style={{ ...componentStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input type="checkbox" checked={component.props.checked} onChange={() => {}} />
+        <label style={{ ...componentStyle, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <input 
+            type="checkbox" 
+            checked={localState.checked || false}
+            onChange={(e) => setLocalState({ ...localState, checked: e.target.checked })}
+            style={{ cursor: 'pointer' }}
+          />
           <span>{component.props.label}</span>
         </label>
       );
     }
     
-    // Slider
+    // Slider with state
     if (component.type === 'slider') {
       return (
-        <input 
-          type="range" 
-          min={component.props.min} 
-          max={component.props.max} 
-          value={component.props.value} 
-          style={componentStyle}
-          onChange={() => {}}
-        />
+        <div style={{ ...componentStyle, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <input 
+            type="range" 
+            min={component.props.min} 
+            max={component.props.max} 
+            value={localState.value ?? component.props.value}
+            onChange={(e) => setLocalState({ ...localState, value: parseInt(e.target.value) })}
+            style={{ width: '100%', cursor: 'pointer' }}
+          />
+          <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
+            Value: {localState.value ?? component.props.value}
+          </div>
+        </div>
       );
     }
     
@@ -1814,51 +3058,47 @@ const PreviewRenderer = ({ component }) => {
       );
     }
     
-    // Accordion
+    // Accordion with state
     if (component.type === 'accordion') {
       return (
         <div style={componentStyle}>
           {component.props.items?.map((item, idx) => (
-            <div key={idx} style={{ padding: '12px', borderBottom: idx < component.props.items.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
-              {item}
+            <div 
+              key={idx} 
+              onClick={() => setLocalState({ ...localState, openIndex: localState.openIndex === idx ? null : idx })}
+              style={{ 
+                padding: '12px', 
+                borderBottom: idx < component.props.items.length - 1 ? '1px solid #e5e7eb' : 'none',
+                cursor: 'pointer',
+                backgroundColor: localState.openIndex === idx ? '#f9fafb' : 'transparent',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{item}</span>
+                <span style={{ transform: localState.openIndex === idx ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                  ▼
+                </span>
+              </div>
+              {localState.openIndex === idx && (
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e7eb', color: '#6b7280', fontSize: '14px' }}>
+                  Content for {item}
+                </div>
+              )}
             </div>
           ))}
         </div>
       );
     }
     
-    // Dropdown
+    // Dropdown - using separate component
     if (component.type === 'dropdown') {
-      return (
-        <div style={componentStyle}>
-          <button style={{ padding: '8px 16px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#ffffff', cursor: 'pointer' }}>
-            {component.props.buttonText} ▼
-          </button>
-        </div>
-      );
+      return <InteractiveDropdown component={component} componentStyle={componentStyle} />;
     }
     
-    // Pagination
+    // Pagination - using separate component
     if (component.type === 'pagination') {
-      return (
-        <div style={componentStyle}>
-          {Array.from({ length: component.props.totalPages }, (_, i) => (
-            <button 
-              key={i} 
-              style={{ 
-                padding: '6px 12px', 
-                border: '1px solid #d1d5db', 
-                backgroundColor: i + 1 === component.props.currentPage ? '#3b82f6' : '#ffffff',
-                color: i + 1 === component.props.currentPage ? '#ffffff' : '#374151',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      );
+      return <InteractivePagination component={component} componentStyle={componentStyle} />;
     }
     
     // Stepper
@@ -1891,17 +3131,9 @@ const PreviewRenderer = ({ component }) => {
       );
     }
     
-    // Rating
+    // Rating - using separate component
     if (component.type === 'rating') {
-      return (
-        <div style={componentStyle}>
-          {Array.from({ length: component.props.stars }, (_, i) => (
-            <span key={i} style={{ fontSize: component.props.size, color: i < component.props.value ? component.props.color : '#d1d5db' }}>
-              ★
-            </span>
-          ))}
-        </div>
-      );
+      return <InteractiveRating component={component} componentStyle={componentStyle} />;
     }
     
     // Timeline
@@ -1940,36 +3172,19 @@ const PreviewRenderer = ({ component }) => {
       );
     }
     
-    // Button Group
+    // Button Group - using separate component
     if (component.type === 'buttonGroup') {
-      return (
-        <div style={componentStyle}>
-          {component.props.buttons?.map((btn, idx) => (
-            <button 
-              key={idx} 
-              style={{ 
-                padding: '8px 16px', 
-                border: '1px solid #d1d5db',
-                borderRight: idx < component.props.buttons.length - 1 ? 'none' : '1px solid #d1d5db',
-                backgroundColor: '#ffffff',
-                cursor: 'pointer',
-                borderRadius: idx === 0 ? '6px 0 0 6px' : idx === component.props.buttons.length - 1 ? '0 6px 6px 0' : '0'
-              }}
-            >
-              {btn}
-            </button>
-          ))}
-        </div>
-      );
+      return <InteractiveButtonGroup component={component} componentStyle={componentStyle} />;
     }
     
-    // Tooltip
+    // Button with hover effect - using separate component
+    if (component.type === 'button' || component.type === 'buttonSecondary' || component.type === 'buttonOutline' || component.type === 'iconButton') {
+      return <InteractiveButton component={component} componentStyle={componentStyle} Tag={Tag} />;
+    }
+    
+    // Tooltip - using separate component
     if (component.type === 'tooltip') {
-      return (
-        <div style={{ position: 'relative', display: 'inline-block', ...componentStyle }}>
-          <span>{component.props.text}</span>
-        </div>
-      );
+      return <InteractiveTooltip component={component} componentStyle={componentStyle} />;
     }
     
     // Code block
@@ -1984,7 +3199,14 @@ const PreviewRenderer = ({ component }) => {
     // Form (container)
     if (component.type === 'form') {
       return (
-        <Tag style={componentStyle} onSubmit={(e) => e.preventDefault()}>
+        <Tag 
+          style={componentStyle} 
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log('Form submitted!');
+            alert('Form submitted! (Check console for details)');
+          }}
+        >
           {renderChildren()}
         </Tag>
       );
@@ -2753,8 +3975,166 @@ const PropertyEditor = ({ component, onUpdate, onAddChild, components, onSelect 
         </div>
       </div>
 
+      {/* Validation & Event Handlers (for inputs, textareas, buttons, forms) */}
+      {(component.type === 'input' || component.type === 'textarea' || component.type === 'button' || 
+        component.type === 'buttonSecondary' || component.type === 'buttonOutline' || 
+        component.type === 'form' || component.type === 'checkbox' || component.type === 'switch' || 
+        component.type === 'select') && (
+        <div style={{ 
+          marginBottom: '20px', 
+          padding: '12px', 
+          backgroundColor: '#eff6ff', 
+          borderRadius: '6px',
+          border: '1px solid #dbeafe'
+        }}>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: '#1e40af', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>⚡</span>
+            <span>Validation & Events</span>
+          </div>
+          
+          {/* Validation Type for Inputs */}
+          {(component.type === 'input' || component.type === 'textarea') && (
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#1e40af' }}>
+                Validation Type
+              </label>
+              <select
+                value={component.props.validationType || 'none'}
+                onChange={(e) => updateProp('validationType', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                <option value="none">No Validation</option>
+                <option value="email">Email Validation</option>
+                <option value="phone">Phone Validation</option>
+                <option value="required">Required Field</option>
+                <option value="number">Numbers Only</option>
+                <option value="url">URL Validation</option>
+              </select>
+              {component.props.validationType && component.props.validationType !== 'none' && (
+                <div style={{ marginTop: '8px', fontSize: '12px', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>✓</span>
+                  <span>Validation will be applied in preview mode</span>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Required Field */}
+          {(component.type === 'input' || component.type === 'textarea' || component.type === 'select') && (
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={component.props.required || false}
+                  onChange={(e) => updateProp('required', e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '13px', fontWeight: '600', color: '#1e40af' }}>
+                  Required Field
+                </span>
+              </label>
+              {component.props.required && (
+                <div style={{ marginTop: '4px', marginLeft: '24px', fontSize: '11px', color: '#6b7280' }}>
+                  Red asterisk (*) will be shown
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Event Handler Type for Buttons */}
+          {(component.type === 'button' || component.type === 'buttonSecondary' || component.type === 'buttonOutline') && (
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#1e40af' }}>
+                Button Action
+              </label>
+              <select
+                value={component.props.eventHandler || 'default'}
+                onChange={(e) => updateProp('eventHandler', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                <option value="default">Default (Click Counter)</option>
+                <option value="submit">Submit Form</option>
+                <option value="reset">Reset Form</option>
+                <option value="navigate">Navigate/Link</option>
+                <option value="api">API Call (Simulated)</option>
+              </select>
+              {component.props.eventHandler === 'submit' && (
+                <div style={{ marginTop: '8px', fontSize: '11px', color: '#1e40af', backgroundColor: '#dbeafe', padding: '6px 8px', borderRadius: '4px' }}>
+                  💡 Will show loading state and validate form fields
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Custom Event Message */}
+          {(component.type === 'button' || component.type === 'buttonSecondary' || component.type === 'buttonOutline') && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#1e40af' }}>
+                Success Message
+              </label>
+              <input
+                type="text"
+                value={component.props.successMessage || 'Action completed successfully!'}
+                onChange={(e) => updateProp('successMessage', e.target.value)}
+                placeholder="Success message"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Form Validation Mode */}
+          {component.type === 'form' && (
+            <div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={component.props.validateOnSubmit !== false}
+                  onChange={(e) => updateProp('validateOnSubmit', e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '13px', fontWeight: '600', color: '#1e40af' }}>
+                  Validate on Submit
+                </span>
+              </label>
+              <div style={{ marginTop: '4px', marginLeft: '24px', fontSize: '11px', color: '#6b7280' }}>
+                Check all fields before submission
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {Object.entries(component.props).map(([key, value]) => {
+          // Skip validation/event handler props from being shown in regular properties
+          if (key === 'validationType' || key === 'required' || key === 'eventHandler' || 
+              key === 'successMessage' || key === 'validateOnSubmit') {
+            return null;
+          }
+          
           // Handle items array (for lists)
           if (key === 'items' && Array.isArray(value)) {
             return (
@@ -3474,6 +4854,116 @@ const CodePreview = ({ components, framework }) => {
     }
   };
 
+  const generateComponentCodeWithHandlers = (component, indent = 0, framework) => {
+    const spaces = '  '.repeat(indent);
+    const template = COMPONENT_TEMPLATES[component.type];
+    const frameworkConfig = template?.frameworks?.[framework];
+    
+    // Helper to get event handlers for different component types
+    const getEventHandlers = (type, id, props) => {
+      const handlers = [];
+      
+      if (type === 'input' || type === 'textarea') {
+        const placeholder = props.placeholder || '';
+        handlers.push(`onChange={(e) => handleInputChange(e.target.value, '${id}', '${placeholder}')}`);
+        handlers.push(`value={state.formData['${id}'] || ''}`);
+      }
+      
+      if (type === 'button' || type === 'buttonSecondary' || type === 'buttonOutline') {
+        const isLoading = `state.loadingStates['${id}']`;
+        handlers.push(`onClick={() => handleButtonClick('${id}', '${props.text}')}`);
+        handlers.push(`disabled={${isLoading}}`);
+      }
+      
+      if (type === 'checkbox' || type === 'switch') {
+        handlers.push(`onChange={(e) => handleCheckboxChange('${id}', e.target.checked)}`);
+        handlers.push(`checked={state.toggleStates['${id}'] || false}`);
+      }
+      
+      if (type === 'select') {
+        handlers.push(`onChange={(e) => handleSelectChange('${id}', e.target.value)}`);
+        handlers.push(`value={state.formData['${id}'] || ''}`);
+      }
+      
+      return handlers.length > 0 ? ' ' + handlers.join(' ') : '';
+    };
+    
+    // Helper to show validation errors
+    const getValidationError = (type, id) => {
+      if (type === 'input' || type === 'textarea') {
+        return `
+${spaces}  {state.validationErrors['${id}'] && (
+${spaces}    <span style={{ fontSize: '12px', color: '#ef4444', display: 'block', marginTop: '4px' }}>
+${spaces}      ⚠️ {state.validationErrors['${id}']}
+${spaces}    </span>
+${spaces}  )}`;
+      }
+      return '';
+    };
+    
+    if (framework === 'vanilla') {
+      const Tag = template?.tag || 'div';
+      const styleProps = Object.entries(component.props)
+        .filter(([key]) => key !== 'text' && key !== 'items' && key !== 'src' && key !== 'alt' && key !== 'placeholder')
+        .map(([key, value]) => `${key}: '${value}'`)
+        .join(', ');
+
+      const styleString = styleProps ? `style={{ ${styleProps} }}` : '';
+      const eventHandlers = getEventHandlers(component.type, component.id, component.props);
+
+      if (component.type === 'list') {
+        const items = component.props.items || [];
+        return `${spaces}<${Tag} ${styleString}>\n${items.map(item => `${spaces}  <li>${item}</li>`).join('\n')}\n${spaces}</${Tag}>`;
+      }
+
+      if (component.type === 'image') {
+        return `${spaces}<${Tag} src="${component.props.src}" alt="${component.props.alt}" ${styleString} />`;
+      }
+      
+      if (component.type === 'input') {
+        const hasError = `state.validationErrors['${component.id}']`;
+        return `${spaces}<div>
+${spaces}  <${Tag} 
+${spaces}    placeholder="${component.props.placeholder || ''}"
+${spaces}    ${styleString}
+${spaces}    ${eventHandlers}
+${spaces}  />${getValidationError(component.type, component.id)}
+${spaces}</div>`;
+      }
+      
+      if (component.type === 'button' || component.type === 'buttonSecondary' || component.type === 'buttonOutline') {
+        const isLoading = `state.loadingStates['${component.id}']`;
+        const clickCount = `state.counters['${component.id}']`;
+        return `${spaces}<${Tag} ${styleString}${eventHandlers}>
+${spaces}  {${isLoading} ? 'Loading...' : '${component.props.text}'}
+${spaces}  {${clickCount} > 0 && <span style={{ marginLeft: '8px' }}>({${clickCount}})</span>}
+${spaces}</${Tag}>`;
+      }
+      
+      if (component.type === 'checkbox' || component.type === 'switch') {
+        return `${spaces}<label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+${spaces}  <input type="checkbox"${eventHandlers} />
+${spaces}  <span>${component.props.label || 'Checkbox'}</span>
+${spaces}</label>`;
+      }
+
+      let content = '';
+      if (component.props.text) {
+        content = component.props.text;
+      }
+      
+      if (component.children && component.children.length > 0) {
+        const childrenCode = component.children.map(child => generateComponentCodeWithHandlers(child, indent + 1, framework)).join('\n');
+        return `${spaces}<${Tag} ${styleString}${eventHandlers}>\n${childrenCode}\n${spaces}</${Tag}>`;
+      }
+
+      return `${spaces}<${Tag} ${styleString}${eventHandlers}>${content}</${Tag}>`;
+    }
+    
+    // For other frameworks, fall back to original generator
+    return generateComponentCode(component, indent, framework);
+  };
+
   const getImports = () => {
     switch(framework) {
       case 'bootstrap':
@@ -3487,18 +4977,164 @@ const CodePreview = ({ components, framework }) => {
     }
   };
 
-  const fullCode = `import React from 'react';
+  const fullCode = `import React, { useState, useReducer, createContext, useContext } from 'react';
 ${getImports()}
 
+// State Management Setup
+const AppStateContext = createContext();
+
+const initialAppState = {
+  formData: {},
+  validationErrors: {},
+  loadingStates: {},
+  counters: {},
+  toggleStates: {}
+};
+
+const appStateReducer = (state, action) => {
+  switch (action.type) {
+    case 'UPDATE_FORM_DATA':
+      return {
+        ...state,
+        formData: { ...state.formData, [action.field]: action.value }
+      };
+    case 'SET_VALIDATION_ERROR':
+      return {
+        ...state,
+        validationErrors: { ...state.validationErrors, [action.field]: action.error }
+      };
+    case 'CLEAR_VALIDATION_ERROR':
+      const { [action.field]: removed, ...rest } = state.validationErrors;
+      return { ...state, validationErrors: rest };
+    case 'SET_LOADING':
+      return {
+        ...state,
+        loadingStates: { ...state.loadingStates, [action.id]: action.loading }
+      };
+    case 'INCREMENT_COUNTER':
+      return {
+        ...state,
+        counters: { ...state.counters, [action.id]: (state.counters[action.id] || 0) + 1 }
+      };
+    case 'TOGGLE_STATE':
+      return {
+        ...state,
+        toggleStates: { ...state.toggleStates, [action.id]: !state.toggleStates[action.id] }
+      };
+    case 'RESET_STATE':
+      return initialAppState;
+    default:
+      return state;
+  }
+};
+
+const AppStateProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(appStateReducer, initialAppState);
+  return (
+    <AppStateContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppStateContext.Provider>
+  );
+};
+
+const useAppState = () => {
+  const context = useContext(AppStateContext);
+  if (!context) {
+    throw new Error('useAppState must be used within AppStateProvider');
+  }
+  return context;
+};
+
+// Validation Functions
+const validateInput = (value, placeholder) => {
+  if (!value) return null;
+  
+  // Email validation
+  if (placeholder?.toLowerCase().includes('email') || placeholder?.toLowerCase().includes('e-mail')) {
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+    return emailRegex.test(value) ? null : 'Please enter a valid email address';
+  }
+  
+  // Phone validation
+  if (placeholder?.toLowerCase().includes('phone')) {
+    const phoneRegex = /^[\\d\\s\\-\\+\\(\\)]+$/;
+    return phoneRegex.test(value) ? null : 'Please enter a valid phone number';
+  }
+  
+  return null;
+};
+
+// Event Handlers
+const useEventHandlers = () => {
+  const { state, dispatch } = useAppState();
+  
+  const handleInputChange = (value, fieldId, placeholder) => {
+    dispatch({ type: 'UPDATE_FORM_DATA', field: fieldId, value });
+    
+    const error = validateInput(value, placeholder);
+    if (error) {
+      dispatch({ type: 'SET_VALIDATION_ERROR', field: fieldId, error });
+    } else {
+      dispatch({ type: 'CLEAR_VALIDATION_ERROR', field: fieldId });
+    }
+  };
+  
+  const handleButtonClick = async (buttonId, buttonText) => {
+    console.log('Button clicked:', buttonText);
+    
+    if (buttonText?.toLowerCase().includes('submit') || 
+        buttonText?.toLowerCase().includes('sign in') ||
+        buttonText?.toLowerCase().includes('send')) {
+      dispatch({ type: 'SET_LOADING', id: buttonId, loading: true });
+      
+      // Simulate API call
+      setTimeout(() => {
+        dispatch({ type: 'SET_LOADING', id: buttonId, loading: false });
+        console.log('Form submitted with data:', state.formData);
+        alert('Form submitted successfully! Check console for data.');
+      }, 1500);
+    } else {
+      dispatch({ type: 'INCREMENT_COUNTER', id: buttonId });
+    }
+  };
+  
+  const handleCheckboxChange = (fieldId, checked) => {
+    dispatch({ type: 'TOGGLE_STATE', id: fieldId });
+    dispatch({ type: 'UPDATE_FORM_DATA', field: fieldId, value: checked });
+  };
+  
+  const handleSelectChange = (fieldId, value) => {
+    dispatch({ type: 'UPDATE_FORM_DATA', field: fieldId, value });
+  };
+  
+  return {
+    handleInputChange,
+    handleButtonClick,
+    handleCheckboxChange,
+    handleSelectChange
+  };
+};
+
 const MyApp = () => {
+  const { state } = useAppState();
+  const { handleInputChange, handleButtonClick, handleCheckboxChange, handleSelectChange } = useEventHandlers();
+  
   return (
     <div${framework === 'bootstrap' ? ' className="container my-4"' : framework === 'tailwind' ? ' className="container mx-auto p-5"' : ' style={{ padding: "20px" }}'}>
-${components.map(comp => generateComponentCode(comp, 3, framework)).join('\n')}
+${components.map(comp => generateComponentCodeWithHandlers(comp, 3, framework)).join('\n')}
     </div>
   );
 };
 
-export default MyApp;`;
+const AppWithProvider = () => {
+  return (
+    <AppStateProvider>
+      <MyApp />
+    </AppStateProvider>
+  );
+};
+
+export default AppWithProvider;`;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -4813,6 +6449,7 @@ export default MyApp;`;
           {view === 'design' ? (
             isPreviewMode ? (
               // Preview Mode - Full interactive preview
+              <AppStateProvider>
               <div style={{
                 flex: 1,
                 overflow: 'auto',
@@ -4863,7 +6500,11 @@ export default MyApp;`;
                   <Play size={14} />
                   Live Preview
                 </div>
+                
+                {/* State Viewer Panel */}
+                <StateViewer />
               </div>
+              </AppStateProvider>
             ) : (
               // Design Mode - Editable with outlines
             <div
